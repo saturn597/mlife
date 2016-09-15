@@ -1,6 +1,5 @@
 open Core.Std
 
-
 let dimx = 10
 let dimy = 10
 
@@ -57,13 +56,17 @@ let rec loop board count =
         | 1 -> ()
         | _ -> loop (tick board) (count - 1)
 
+
+let read_file filename =
+    let int_tuple = fun (x, y) ->
+        (Int.of_string x, Int.of_string y) in
+    In_channel.with_file filename ~f:(fun file ->
+        In_channel.fold_lines file ~init:[] ~f:(fun coords line ->
+            (String.lsplit2_exn line ~on:',' |> int_tuple) :: coords))
+
 let main ticks =
     let board = Array.make_matrix ~dimx ~dimy Dead in
-    board.(6).(4) <- Alive;
-    board.(6).(5) <- Alive;
-    board.(6).(6) <- Alive;
-    board.(5).(6) <- Alive;
-    board.(4).(5) <- Alive;
+    List.iter (read_file "Life") ~f:(fun (x, y) -> board.(x).(y) <- Alive);
     loop board ticks
 
 let spec =
@@ -74,7 +77,7 @@ let spec =
 let command =
     Command.basic
         ~summary:"Run Conway's Game of Life"
-        ~readme:(fun () -> "Enter the number of ticks you want. 0 to never end.")
+        ~readme:(fun () -> "Enter the number of ticks you want to show. 0 to never end.")
         spec
         (fun ticks () -> main ticks)
 
